@@ -1,0 +1,30 @@
+# 为 Northflank 部署优化的 docker-compose.yml 版本
+version: '3.8'
+
+services:
+  trojan-panel:
+    image: jonssonyan/trojan-panel:latest
+    ports:
+      - "8080:80" # 面板的Web端口
+    volumes:
+      - /trojan-panel # 用于存储证书等
+    depends_on:
+      - postgres
+      - redis
+
+  trojan:
+    image: trojangfw/trojan:latest
+    ports:
+      - "443:443/tcp" # Trojan 的主服务端口
+    volumes:
+      - /trojan-panel # 共享证书卷
+    depends_on:
+      - trojan-panel
+
+  postgres:
+    image: postgres:13-alpine
+    volumes:
+      - /var/lib/postgresql/data # 数据库持久化存储
+
+  redis:
+    image: redis:6-alpine
